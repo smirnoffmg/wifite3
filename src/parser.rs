@@ -4,7 +4,7 @@ use crate::network::NetworkData;
 pub struct BeaconParser;
 
 impl BeaconParser {
-    pub fn parse_beacon_frame(&self, data: &[u8]) -> Option<NetworkData> {
+    pub fn parse_beacon_frame(data: &[u8]) -> Option<NetworkData> {
         if data.len() < 24 {
             return None;
         }
@@ -28,7 +28,7 @@ impl BeaconParser {
             data[10], data[11], data[12], data[13], data[14], data[15]);
 
         // Parse beacon frame for network data
-        let network_data = self.extract_network_data(data)?;
+        let network_data = Self::extract_network_data(data);
         
         Some(NetworkData {
             ssid: network_data.0,
@@ -39,13 +39,13 @@ impl BeaconParser {
         })
     }
 
-    fn extract_network_data(&self, data: &[u8]) -> Option<(String, u8, i8, String)> {
+    fn extract_network_data(data: &[u8]) -> (String, u8, i8, String) {
         let mut ssid = "Hidden Network".to_string();
         let mut encryption = "Open".to_string();
         let mut channel = 6u8;
         
         if data.len() < 36 {
-            return Some((ssid, channel, -50, encryption));
+            return (ssid, channel, -50, encryption);
         }
 
         let mut offset = 36; // Start after fixed header
@@ -87,8 +87,8 @@ impl BeaconParser {
         }
         
         // Calculate RSSI (simplified simulation)
-        let rssi = -50 - (data.len() % 30) as i8;
+        let rssi = -50 - i8::try_from(data.len() % 30).unwrap_or(0);
         
-        Some((ssid, channel, rssi, encryption))
+        (ssid, channel, rssi, encryption)
     }
 }

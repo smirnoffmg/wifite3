@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-/// WiFi network information
+/// `WiFi` network information
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct WiFiNetwork {
@@ -29,6 +29,7 @@ pub struct NetworkData {
 #[pymethods]
 impl WiFiNetwork {
     #[new]
+    #[must_use]
     pub fn new(ssid: String, bssid: String, channel: u8, rssi: i8, encryption: String) -> Self {
         Self {
             ssid,

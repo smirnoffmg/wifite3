@@ -15,9 +15,13 @@ pub use pmkid::PMKIDCapture;
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn _wifite3(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<WiFiNetwork>()?;
-    m.add_class::<NetworkScanner>()?;
-    m.add_class::<PMKIDCapture>()?;
-    Ok(())
+mod _wifite3 {
+    #[pymodule_export]
+    use super::WiFiNetwork;
+
+    #[pymodule_export]
+    use super::NetworkScanner;
+
+    #[pymodule_export]
+    use super::PMKIDCapture;
 }

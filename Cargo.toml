@@ -8,7 +8,7 @@ name = "wifite3"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.26.0", features = ["auto-initialize"] }
+pyo3 = { version = "0.26.0", features = ["abi3-py312", "extension-module"] }
 pcap = "1.0"
 pnet = "0.35"
 pbkdf2 = "0.12"

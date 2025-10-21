@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 
 /// PMKID capture data structure
 #[pyclass]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
+#[allow(clippy::unsafe_derive_deserialize)]
+#[derive(Deserialize)]
 pub struct PMKIDCapture {
     #[pyo3(get)]
     pub ssid: String,
@@ -30,10 +32,11 @@ pub struct PMKIDData {
 #[pymethods]
 impl PMKIDCapture {
     #[new]
+    #[must_use]
     pub fn new(ssid: String, bssid: String, client_mac: String, pmkid: String) -> Self {
         let hashcat_format = format!(
             "WPA*01*{}*{}*{}*{}",
-            pmkid, bssid.replace(":", ""), client_mac.replace(":", ""), ssid
+            pmkid, bssid.replace(':', ""), client_mac.replace(':', ""), ssid
         );
         
         Self {
@@ -45,12 +48,9 @@ impl PMKIDCapture {
         }
     }
 
-    /// Get the hashcat-compatible format for this PMKID
-    pub fn get_hashcat_format(&self) -> String {
-        self.hashcat_format.clone()
-    }
 
     /// Get a summary of the PMKID capture
+    #[must_use]
     pub fn get_summary(&self) -> String {
         format!(
             "PMKID: {} -> {} (Client: {})",
@@ -64,22 +64,22 @@ pub struct PMKIDParser;
 
 impl PMKIDParser {
     /// Parse EAPOL frame for PMKID
-    pub fn parse_eapol_frame(&self, data: &[u8]) -> Option<PMKIDData> {
+    pub fn parse_eapol_frame(data: &[u8]) -> Option<PMKIDData> {
         if data.len() < 24 {
             return None;
         }
 
         // Check if this is an EAPOL frame
-        if !self.is_eapol_frame(data) {
+        if !Self::is_eapol_frame(data) {
             return None;
         }
 
         // Extract MAC addresses
-        let bssid = self.extract_mac_address(data, 4)?; // Source address
-        let client_mac = self.extract_mac_address(data, 10)?; // Destination address
+        let bssid = Self::extract_mac_address(data, 4)?; // Source address
+        let client_mac = Self::extract_mac_address(data, 10)?; // Destination address
 
         // Parse EAPOL payload for PMKID
-        let pmkid_data = self.extract_pmkid_from_eapol(data)?;
+        let pmkid_data = Self::extract_pmkid_from_eapol(data)?;
         
         // Extract SSID from beacon frames (we'll need to correlate this)
         let ssid = "Unknown".to_string(); // TODO: Correlate with beacon frames
@@ -92,15 +92,15 @@ impl PMKIDParser {
             hashcat_format: format!(
                 "WPA*01*{}*{}*{}*{}",
                 pmkid_data, 
-                bssid.replace(":", ""), 
-                client_mac.replace(":", ""), 
+                bssid.replace(':', ""), 
+                client_mac.replace(':', ""), 
                 ssid
             ),
         })
     }
 
     /// Check if packet is an EAPOL frame
-    fn is_eapol_frame(&self, data: &[u8]) -> bool {
+    fn is_eapol_frame(data: &[u8]) -> bool {
         if data.len() < 24 {
             return false;
         }
@@ -111,7 +111,7 @@ impl PMKIDParser {
     }
 
     /// Extract MAC address from packet
-    fn extract_mac_address(&self, data: &[u8], offset: usize) -> Option<String> {
+    fn extract_mac_address(data: &[u8], offset: usize) -> Option<String> {
         if data.len() < offset + 6 {
             return None;
         }
@@ -125,7 +125,7 @@ impl PMKIDParser {
     }
 
     /// Extract PMKID from EAPOL frame
-    fn extract_pmkid_from_eapol(&self, data: &[u8]) -> Option<String> {
+    fn extract_pmkid_from_eapol(data: &[u8]) -> Option<String> {
         // EAPOL frame structure:
         // - Ethernet header (14 bytes)
         // - EAPOL header (4 bytes)
@@ -136,7 +136,7 @@ impl PMKIDParser {
         }
 
         let eapol_header_start = 14;
-        let _version = data[eapol_header_start];
+        let _ = data[eapol_header_start];
         let packet_type = data[eapol_header_start + 1];
         let body_length = u16::from_be_bytes([
             data[eapol_header_start + 2],
@@ -155,11 +155,11 @@ impl PMKIDParser {
         }
 
         // Look for RSN IE in the key data
-        self.extract_pmkid_from_rsn_ie(&data[key_data_start..])
+        Self::extract_pmkid_from_rsn_ie(&data[key_data_start..])
     }
 
     /// Extract PMKID from RSN Information Element
-    fn extract_pmkid_from_rsn_ie(&self, key_data: &[u8]) -> Option<String> {
+    fn extract_pmkid_from_rsn_ie(key_data: &[u8]) -> Option<String> {
         let mut offset = 0;
         
         // Skip EAPOL-Key header (16 bytes)
@@ -178,7 +178,7 @@ impl PMKIDParser {
             }
 
             if element_id == 48 { // RSN IE
-                return self.parse_rsn_ie_for_pmkid(&key_data[offset + 2..offset + 2 + element_len]);
+                return Self::parse_rsn_ie_for_pmkid(&key_data[offset + 2..offset + 2 + element_len]);
             }
             
             offset += 2 + element_len;
@@ -188,7 +188,7 @@ impl PMKIDParser {
     }
 
     /// Parse RSN IE for PMKID
-    fn parse_rsn_ie_for_pmkid(&self, rsn_data: &[u8]) -> Option<String> {
+    fn parse_rsn_ie_for_pmkid(rsn_data: &[u8]) -> Option<String> {
         if rsn_data.len() < 8 {
             return None;
         }

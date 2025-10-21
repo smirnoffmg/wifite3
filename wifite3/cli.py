@@ -78,9 +78,9 @@ def main(interface, verbose, scan, pmkid, duration):
             )
             console.print(f"[blue]Using interface: {target_interface}[/blue]")
 
-            # Perform PMKID capture
+            # Perform PMKID capture with SSID correlation
             scanner = _wifite3.NetworkScanner(target_interface)
-            pmkid_captures = scanner.capture_pmkid(duration)
+            pmkid_captures = scanner.capture_pmkid_with_correlation(duration)
 
             if pmkid_captures:
                 console.print(
