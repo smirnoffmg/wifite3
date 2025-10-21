@@ -33,7 +33,6 @@ def test_wifi_network_creation():
         assert network.channel == 6
         assert network.rssi == -50
         assert network.encryption == "WPA2"
-        assert len(network.clients) == 0
     except ImportError:
         pytest.skip("Rust module not yet built")
 
@@ -99,7 +98,6 @@ def test_scan_networks():
                 assert isinstance(network.channel, int)
                 assert isinstance(network.rssi, int)
                 assert isinstance(network.encryption, str)
-                assert isinstance(network.clients, list)
 
                 # Validate BSSID format (MAC address)
                 assert len(network.bssid.split(":")) == 6

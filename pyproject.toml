@@ -21,7 +21,7 @@ wifite3 = "wifite3.cli:main"
 
 [tool.maturin]
 python-source = "wifite3"
-module-name = "wifite3._wifite3"
+module-name = "_wifite3"
 
 [dependency-groups]
 dev = ["pytest>=8.4.2", "ruff>=0.14.1"]

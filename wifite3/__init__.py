@@ -8,4 +8,10 @@ __description__ = "Modern WiFi penetration testing tool with Python + Rust"
 
 from .cli import main
 
-__all__ = ["main"]
+# Import Rust module if available
+try:
+    import _wifite3
+
+    __all__ = ["main", "_wifite3"]
+except ImportError:
+    __all__ = ["main"]

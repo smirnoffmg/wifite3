@@ -14,7 +14,11 @@ console = Console()
 @click.option("--interface", "-i", help="Network interface to use")
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @click.option("--scan", is_flag=True, help="Scan for networks")
-def main(interface, verbose, scan):
+@click.option("--pmkid", is_flag=True, help="Capture PMKID from EAPOL frames")
+@click.option(
+    "--duration", "-d", default=30, help="Capture duration in seconds (default: 30)"
+)
+def main(interface, verbose, scan, pmkid, duration):
     """Wifite3 - Modern WiFi penetration testing tool"""
 
     # Display banner
@@ -58,6 +62,40 @@ def main(interface, verbose, scan):
             console.print("[red]Rust module not available[/red]")
         except Exception as e:
             console.print(f"[red]Scanning failed: {e}[/red]")
+
+    if pmkid:
+        console.print(f"[green]Capturing PMKID for {duration} seconds...[/green]")
+        try:
+            import _wifite3
+
+            # Get available interfaces
+            interfaces = _wifite3.NetworkScanner.get_interfaces()
+            console.print(f"[blue]Available interfaces: {', '.join(interfaces)}[/blue]")
+
+            # Use specified interface or first available
+            target_interface = (
+                interface if interface else (interfaces[0] if interfaces else "wlan0")
+            )
+            console.print(f"[blue]Using interface: {target_interface}[/blue]")
+
+            # Perform PMKID capture
+            scanner = _wifite3.NetworkScanner(target_interface)
+            pmkid_captures = scanner.capture_pmkid(duration)
+
+            if pmkid_captures:
+                console.print(
+                    f"[green]Captured {len(pmkid_captures)} PMKID(s):[/green]"
+                )
+                for capture in pmkid_captures:
+                    console.print(f"  • {capture.get_summary()}")
+                    console.print(f"    Hashcat format: {capture.get_hashcat_format()}")
+            else:
+                console.print("[yellow]No PMKID captured[/yellow]")
+
+        except ImportError:
+            console.print("[red]Rust module not available[/red]")
+        except Exception as e:
+            console.print(f"[red]PMKID capture failed: {e}[/red]")
 
     if not interface:
         console.print(
