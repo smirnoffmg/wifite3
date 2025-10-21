@@ -1,0 +1,31 @@
+[project]
+name = "wifite3"
+version = "0.1.0"
+description = "Modern WiFi penetration testing tool with Python + Rust"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "maturin>=1.0.0",
+]
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project.scripts]
+wifite3 = "wifite3.cli:main"
+
+[tool.maturin]
+python-source = "wifite3"
+module-name = "wifite3._wifite3"
+
+[dependency-groups]
+dev = ["pytest>=8.4.2", "ruff>=0.14.1"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,0 +1,22 @@
+[package]
+name = "wifite3"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "wifite3"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.26.0", features = ["auto-initialize"] }
+pcap = "1.0"
+pnet = "0.35"
+pbkdf2 = "0.12"
+hmac = "0.12"
+sha1 = "0.10"
+sha2 = "0.10"
+rayon = "1.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
